@@ -1,48 +1,71 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 
 
 namespace UserTicketService.Tests
 {
-    public class SubtractionTest
+    [TestFixture]
+    public class TicketServiceTests
     {
         [Test]
-        public void SubtractionReturn()
+        public void GeTicketPriceMustReturnNotNullableTicket()
         {
-            var wq = new Subtraction();
-               
-            Assert.That(wq.SubtractionTest(4, 1) == 3);
-            
+            var ticketServiceTest = new TicketService();
+            Assert.IsNotNull(ticketServiceTest.GetTicketPrice(1));
         }
-        [Test]
-        public void SubtractionReturn2()
-        {
-            var wq = new Subtraction();
 
-            Assert.That(wq.Division(4, 4) == 1);
-        }
         [Test]
-        public void SubtractionReturn3()
+        public void GeTicketPriceMustThrowException()
         {
-            var wq = new Subtraction();
-
-            Assert.Throws<DivideByZeroException> (() => wq.Division(4, 0));
+            var ticketServiceTest = new TicketService();
+            Assert.Throws<TicketNotFoundException>(() => ticketServiceTest.GetTicketPrice(100));
         }
+
     }
 
-    
-
-    public class Subtraction
+    public class Ticket
     {
-        public int SubtractionTest(int a, int b)
+        public int Id { get; }
+        public string Description { get; }
+        public int Price { get; }
+
+        public Ticket(int id, string description, int price)
         {
-            return a - b;
+            this.Id = id;
+            this.Description = description;
+            this.Price = price;
         }
-        public int Division(int a, int b)
+    }
+    public interface ITicketService
+    {
+        int GetTicketPrice(int ticketId);
+    }
+    public class TicketService : ITicketService
+    {
+        public int GetTicketPrice(int ticketId)
+        {                           //FirstOrDefault
+            var ticket = FakeBaseData.FirstOrDefault(t => t.Id == ticketId);
+            return (ticket is null) ?
+               throw new TicketNotFoundException() : ticket.Id;
+        }
+
+        private IEnumerable<Ticket> FakeBaseData
         {
-            return a / b;
+            get{
+                return new List<Ticket>
+                {
+                      new Ticket(1, "Москва - Санкт-Петербург", 3500),
+                      new Ticket(2, "Челябинск - Магадан", 3500),
+                      new Ticket(3, "Норильск - Уфа", 3500)
+                };
+            }
         }
+    }
+    public class TicketNotFoundException : Exception
+    {
     }
 }
 
